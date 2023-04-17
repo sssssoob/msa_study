@@ -1,13 +1,13 @@
 package com.optimagrowth.license.service;
 
+import com.optimagrowth.license.config.ServiceConfig;
 import com.optimagrowth.license.model.License;
-import org.eclipse.aether.util.StringUtils;
+import com.optimagrowth.license.repository.LicenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
-import java.util.Locale;
-import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class LicenseService {
@@ -15,53 +15,46 @@ public class LicenseService {
     @Autowired
     MessageSource messages;
 
-    public License getLicese(String licenseId, String organiztionId) {
+    @Autowired
+    private LicenseRepository licenseRepository;
 
+    @Autowired
+    ServiceConfig serviceConfig;
+
+    public License getLicense(String organiztionId, String licenseId) {
+
+        License license = licenseRepository.findByOrganizationIdAndLicenseId(organiztionId, licenseId);
+
+        if (null == license) {
+            throw new IllegalArgumentException(
+                    String.format(messages.getMessage(
+                            "license.search.error.message", null, null),
+                            licenseId, organiztionId));
+        }
+        return license.withComment(serviceConfig.getProperty());
+    }
+
+    public License createLicense(License license) {
+
+        license.setLicenseId(UUID.randomUUID().toString());
+        licenseRepository.save(license);
+        return license.withComment(serviceConfig.getProperty());
+    }
+
+    public License updateLicense(License license) {
+
+        licenseRepository.save(license);
+        return license.withComment(serviceConfig.getProperty());
+    }
+
+    public String deleteLicense(String licenseId) {
+
+        String responseMessage = null;
         License license = new License();
-
-        license.setId(new Random().nextInt(1000));
         license.setLicenseId(licenseId);
-        license.setOrganizationId(organiztionId);
-        license.setDescription("software product");
-        license.setProductName("Ostock");
-        license.setLicenseType("full");
-
-        return license;
-    }
-
-    public String createLicense(License license, String organizationId, Locale locale) {
-
-        String responseMessage = null;
-
-        if(license != null) {
-            license.setOrganizationId(organizationId);
-            responseMessage
-                    = String.format(messages.getMessage(
-                            "license.create.message", null, locale),
-                            license.toString());
-        }
-        return responseMessage;
-    }
-
-    public String updateLicense(License license, String organizationId) {
-
-        String responseMessage = null;
-
-        if(license != null) {
-            license.setOrganizationId(organizationId);
-            responseMessage
-                    = String.format(messages.getMessage(
-                            "license.update.message", null, null),
-                    license.toString());
-        }
-        return responseMessage;
-    }
-
-    public String deleteLicense(String licenseId, String organizationId) {
-
-        String responseMessage = null;
+        licenseRepository.delete(license);
         responseMessage
-                = String.format("Deleting license with id %s for the organization %s", licenseId, organizationId);
+                = String.format("license.delete.message", null, null);
         return responseMessage;
     }
 

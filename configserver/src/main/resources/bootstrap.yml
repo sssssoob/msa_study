@@ -2,12 +2,20 @@ spring:
     application:
       name: config-server
     profiles:
-      active: native
+      active: native, git
 
     cloud:
         config:
           server:
             native:
               search-locations: classpath:/config
+            git:
+              uri: https://github.com/sssssoob/msa_study_config.git
+              search-paths: licensingservice
+              username:
+              password:
+
 server:
   port: 8071
+encrypt:
+  key: secretKey
