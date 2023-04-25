@@ -1,19 +1,19 @@
 spring:
-    application:
-      name: config-server
-    profiles:
-      active: native, git
+  application:
+    name: config-server
+  profiles:
+    active: git
 
-    cloud:
-        config:
-          server:
-            native:
-              search-locations: classpath:/config
-            git:
-              uri: https://github.com/sssssoob/msa_study_config.git
-              search-paths: licensingservice
-              username:
-              password:
+  cloud:
+    config:
+      server:
+#        native:
+#          search-locations: classpath:/config
+        git:
+          uri: https://github.com/sssssoob/msa_study_config.git
+          search-paths: licensingservice
+          username: sssssoob@gmail.com
+          password: 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
 
 server:
   port: 8071

@@ -1,20 +1,19 @@
 package com.optimagrowth.license.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.springframework.hateoas.RepresentationModel;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Data
 @Entity
 @Table(name = "licenses")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class License extends RepresentationModel<License> {
 
     @Id
-    @Column(name = "license_id")
+    @Column(name = "license_id", nullable = false)
     private String licenseId;
 
     private String description;
@@ -28,10 +27,23 @@ public class License extends RepresentationModel<License> {
     @Column(name = "license_type", nullable = false)
     private String licenseType;
 
-    @Column(name = "comment")
+    @Column(name="comment")
     private String comment;
 
-    public License withComment(String comment) {
+    @Transient
+    private String organizationName;
+
+    @Transient
+    private String contactName;
+
+    @Transient
+    private String contactPhone;
+
+    @Transient
+    private String contactEmail;
+
+
+    public License withComment(String comment){
         this.setComment(comment);
         return this;
     }
