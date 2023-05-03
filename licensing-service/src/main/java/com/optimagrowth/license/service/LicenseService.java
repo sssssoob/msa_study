@@ -6,11 +6,17 @@ import com.optimagrowth.license.model.Organization;
 import com.optimagrowth.license.repository.LicenseRepository;
 import com.optimagrowth.license.service.client.OrganizationDiscoveryClient;
 import com.optimagrowth.license.service.client.OrganizationRestTemplate;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class LicenseService {
@@ -32,6 +38,8 @@ public class LicenseService {
 
     @Autowired
     OrganizationDiscoveryClient organizationDiscoveryClient;
+
+    private static final Logger logger = LoggerFactory.getLogger(LicenseService.class);
 
     public License getLicense(String organiztionId, String licenseId) {
 
@@ -111,6 +119,33 @@ public class LicenseService {
         }
 
         return organization;
+    }
+
+    @CircuitBreaker(name = "licenseService")
+    public List<License> getLicensesByOrganization(String organizationId) throws TimeoutException {
+        randomlyRunLong();
+        return licenseRepository.findByOrganizationId(organizationId);
+    }
+
+    /**
+     * 데이터베이스 호출이 오래 실행될 가능성은 1/3
+     */
+    private void randomlyRunLong() throws TimeoutException{
+        Random rand = new Random();
+        int randomNum = rand.nextInt(3)+1;
+        if(randomNum == 3) sleep();
+    }
+
+    /**
+     * 5초 sleep 후 예외 발생시킴
+     */
+    private void sleep() throws TimeoutException {
+        try{
+            Thread.sleep(5000);
+            throw new TimeoutException();
+        }catch (InterruptedException e) {
+            logger.error(e.getMessage());
+        }
     }
 
 }
